@@ -1,6 +1,7 @@
 package com.reactnative.googlecast.api;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.mediarouter.media.MediaRouteSelector;
@@ -127,8 +128,14 @@ public class RNGCDiscoveryManager
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        MediaRouteSelector selector = CastContext.getSharedInstance().getMergedSelector();
-        MediaRouter.getInstance(context).addCallback(selector, mediaRouterCallback);
+        if (!RNGCCastContext.isCastApiAvailable(context)) return;
+
+        try {
+          MediaRouteSelector selector = CastContext.getSharedInstance().getMergedSelector();
+          MediaRouter.getInstance(context).addCallback(selector, mediaRouterCallback);
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
+        }
       }
     });
     mListenersAttached = true;
@@ -143,7 +150,13 @@ public class RNGCDiscoveryManager
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        MediaRouter.getInstance(context).removeCallback(mediaRouterCallback);
+        if (!RNGCCastContext.isCastApiAvailable(context)) return;
+
+        try {
+          MediaRouter.getInstance(context).removeCallback(mediaRouterCallback);
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
+        }
       }
     });
     mListenersAttached = false;

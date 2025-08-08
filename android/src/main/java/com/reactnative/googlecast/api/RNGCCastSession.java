@@ -1,5 +1,7 @@
 package com.reactnative.googlecast.api;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -313,12 +315,18 @@ public class RNGCCastSession extends ReactContextBaseJavaModule implements Lifec
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        SessionManager sessionManager = CastContext.getSharedInstance(context).getSessionManager();
-        sessionManager.addSessionManagerListener(sessionListener);
+        if (!RNGCCastContext.isCastApiAvailable(context)) return;
 
-        castSession = sessionManager.getCurrentCastSession();
-        if (castSession != null) {
-          castSession.addCastListener(castListener);
+        try {
+          SessionManager sessionManager = CastContext.getSharedInstance(context).getSessionManager();
+          sessionManager.addSessionManagerListener(sessionListener);
+
+          castSession = sessionManager.getCurrentCastSession();
+          if (castSession != null) {
+            castSession.addCastListener(castListener);
+          }
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
         }
       }
     });
@@ -334,12 +342,18 @@ public class RNGCCastSession extends ReactContextBaseJavaModule implements Lifec
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        SessionManager sessionManager = CastContext.getSharedInstance(context).getSessionManager();
-        sessionManager.removeSessionManagerListener(sessionListener);
+        try {
+          if (!RNGCCastContext.isCastApiAvailable(context)) return;
 
-        castSession = sessionManager.getCurrentCastSession();
-        if (castSession != null) {
-          castSession.removeCastListener(castListener);
+          SessionManager sessionManager = CastContext.getSharedInstance(context).getSessionManager();
+          sessionManager.removeSessionManagerListener(sessionListener);
+
+          castSession = sessionManager.getCurrentCastSession();
+          if (castSession != null) {
+            castSession.removeCastListener(castListener);
+          }
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
         }
       }
     });

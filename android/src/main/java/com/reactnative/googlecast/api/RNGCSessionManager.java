@@ -1,5 +1,7 @@
 package com.reactnative.googlecast.api;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.mediarouter.media.MediaRouter;
@@ -101,11 +103,15 @@ public class RNGCSessionManager
     getReactApplicationContext().runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        int state = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getReactApplicationContext());
-        if (state == ConnectionResult.SUCCESS) {
-          promise.resolve(RNGCCastSession.toJson(getSessionManager().getCurrentCastSession()));
-        } else {
-          promise.resolve(null);
+        try {
+          int state = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getReactApplicationContext());
+          if (state == ConnectionResult.SUCCESS) {
+            promise.resolve(RNGCCastSession.toJson(getSessionManager().getCurrentCastSession()));
+          } else {
+            promise.resolve(null);
+          }
+        } catch (Exception exception) {
+          promise.reject(exception);
         }
       }
     });
@@ -219,8 +225,14 @@ public class RNGCSessionManager
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        getSessionManager().addSessionManagerListener(RNGCSessionManager.this,
-          CastSession.class);
+        if (!RNGCCastContext.isCastApiAvailable(context)) return;
+
+        try {
+          getSessionManager().addSessionManagerListener(RNGCSessionManager.this,
+                  CastSession.class);
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
+        }
       }
     });
     mListenersAttached = true;
@@ -235,8 +247,14 @@ public class RNGCSessionManager
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        getSessionManager().removeSessionManagerListener(RNGCSessionManager.this,
-          CastSession.class);
+        if (!RNGCCastContext.isCastApiAvailable(context)) return;
+
+        try {
+          getSessionManager().removeSessionManagerListener(RNGCSessionManager.this,
+                  CastSession.class);
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
+        }
       }
     });
     mListenersAttached = false;

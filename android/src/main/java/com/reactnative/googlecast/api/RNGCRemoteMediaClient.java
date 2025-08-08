@@ -1,5 +1,7 @@
 package com.reactnative.googlecast.api;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -348,13 +350,19 @@ public class RNGCRemoteMediaClient extends ReactContextBaseJavaModule implements
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        SessionManager sessionManager = CastContext.getSharedInstance(context)
-          .getSessionManager();
-        sessionManager.addSessionManagerListener(sessionListener);
+        if (!RNGCCastContext.isCastApiAvailable(context)) return;
 
-        CastSession session = sessionManager.getCurrentCastSession();
-        if (session != null && session.getRemoteMediaClient() != null) {
-          session.getRemoteMediaClient().registerCallback(clientCallback);
+        try {
+          SessionManager sessionManager = CastContext.getSharedInstance(context)
+            .getSessionManager();
+          sessionManager.addSessionManagerListener(sessionListener);
+
+          CastSession session = sessionManager.getCurrentCastSession();
+          if (session != null && session.getRemoteMediaClient() != null) {
+            session.getRemoteMediaClient().registerCallback(clientCallback);
+          }
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
         }
       }
     });
@@ -370,13 +378,19 @@ public class RNGCRemoteMediaClient extends ReactContextBaseJavaModule implements
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        SessionManager sessionManager = CastContext.getSharedInstance(context)
-          .getSessionManager();
-        sessionManager.removeSessionManagerListener(sessionListener);
+        if (!RNGCCastContext.isCastApiAvailable(context)) return;
 
-        CastSession session = sessionManager.getCurrentCastSession();
-        if (session != null && session.getRemoteMediaClient() != null) {
-          session.getRemoteMediaClient().unregisterCallback(clientCallback);
+        try {
+          SessionManager sessionManager = CastContext.getSharedInstance(context)
+                  .getSessionManager();
+          sessionManager.removeSessionManagerListener(sessionListener);
+
+          CastSession session = sessionManager.getCurrentCastSession();
+          if (session != null && session.getRemoteMediaClient() != null) {
+            session.getRemoteMediaClient().unregisterCallback(clientCallback);
+          }
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
         }
       }
     });

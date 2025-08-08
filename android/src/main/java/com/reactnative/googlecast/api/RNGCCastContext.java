@@ -6,6 +6,7 @@ import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -94,12 +95,17 @@ public class RNGCCastContext
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        if (isCastApiAvailable(context)) {
-          CastContext castContext =
-            CastContext.getSharedInstance(context);
-          promise.resolve(RNGCCastState.toJson(castContext.getCastState()));
-        } else {
+        if (!isCastApiAvailable(context)) {
           promise.resolve(null);
+          return;
+        }
+
+        try {
+          CastContext castContext = CastContext.getSharedInstance(context);
+          promise.resolve(RNGCCastState.toJson(castContext.getCastState()));
+        } catch (Exception exception) {
+          promise.reject("UNKNOWN_ERROR", exception);
+          Log.e("CAST", "Error", exception);
         }
       }
     });
@@ -192,8 +198,14 @@ public class RNGCCastContext
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        CastContext castContext = CastContext.getSharedInstance(context);
-        castContext.addCastStateListener(castStateListener);
+        if (!isCastApiAvailable(context)) return;
+
+        try {
+          CastContext castContext = CastContext.getSharedInstance(context);
+          castContext.addCastStateListener(castStateListener);
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
+        }
       }
     });
 
@@ -209,8 +221,14 @@ public class RNGCCastContext
     context.runOnUiQueueThread(new Runnable() {
       @Override
       public void run() {
-        CastContext castContext = CastContext.getSharedInstance(context);
-        castContext.removeCastStateListener(castStateListener);
+        if (!isCastApiAvailable(context)) return;
+
+        try {
+          CastContext castContext = CastContext.getSharedInstance(context);
+          castContext.removeCastStateListener(castStateListener);
+        } catch (Exception exception) {
+          Log.e("CAST", "Error", exception);
+        }
       }
     });
     mListenersAttached = false;
