@@ -140,6 +140,10 @@ public class RNGCSessionManager
 
     try {
       Integer reasonCode = Objects.requireNonNull(CastContext.getSharedInstance()).getCastReasonCodeForCastStatusCode(error);
+      if (reasonCode.equals(CastReasonCodes.CASTING_STOPPED)) {
+        sendEvent(SESSION_ENDED, params);
+        return;
+      }
       params.putInt("errorReasonCode", reasonCode);
     } catch (Exception ignored) {}
 
