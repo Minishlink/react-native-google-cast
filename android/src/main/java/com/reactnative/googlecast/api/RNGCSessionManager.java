@@ -17,6 +17,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastStatusCodes;
 import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastReasonCodes;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
@@ -26,6 +27,7 @@ import com.reactnative.googlecast.types.RNGCDevice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class RNGCSessionManager
   extends ReactContextBaseJavaModule implements LifecycleEventListener, SessionManagerListener<CastSession> {
@@ -135,6 +137,12 @@ public class RNGCSessionManager
     WritableMap params = Arguments.createMap();
 
     params.putMap("session", RNGCCastSession.toJson((session)));
+
+    try {
+      Integer reasonCode = Objects.requireNonNull(CastContext.getSharedInstance()).getCastReasonCodeForCastStatusCode(error);
+      params.putInt("errorReasonCode", reasonCode);
+    } catch (Exception ignored) {}
+
     params.putString("error", CastStatusCodes.getStatusCodeString(error));
 
     sendEvent(SESSION_ENDED, params);
@@ -170,6 +178,11 @@ public class RNGCSessionManager
     params.putMap("session", RNGCCastSession.toJson((session)));
     params.putString("error", CastStatusCodes.getStatusCodeString(error));
 
+    try {
+      Integer reasonCode = Objects.requireNonNull(CastContext.getSharedInstance()).getCastReasonCodeForCastStatusCode(error);
+      params.putInt("errorReasonCode", reasonCode);
+    } catch (Exception ignored) {}
+
     sendEvent(SESSION_START_FAILED, params);
   }
 
@@ -201,11 +214,16 @@ public class RNGCSessionManager
   }
 
   @Override
-  public void onSessionSuspended(CastSession session, int reason) {
+  public void onSessionSuspended(CastSession session, int errorCode) {
     WritableMap params = Arguments.createMap();
 
     params.putMap("session", RNGCCastSession.toJson((session)));
-    // TODO params.putString("reason", );
+    params.putInt("errorCode", errorCode);
+
+    try {
+      Integer reasonCode = Objects.requireNonNull(CastContext.getSharedInstance()).getCastReasonCodeForCastStatusCode(errorCode);
+      params.putInt("errorReasonCode", reasonCode);
+    } catch (Exception ignored) {}
 
     sendEvent(SESSION_SUSPENDED, params);
   }
